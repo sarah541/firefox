@@ -41,13 +41,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import mozilla.components.compose.base.LinkText
+import mozilla.components.compose.base.LinkTextState
 import mozilla.components.compose.base.PromoCard
 import mozilla.components.compose.base.annotation.FlexibleWindowPreview
 import mozilla.components.compose.base.button.TextButton
 import mozilla.components.concept.ai.controls.AIControllableFeature
 import org.mozilla.fenix.R
-import org.mozilla.fenix.compose.LinkText
-import org.mozilla.fenix.compose.LinkTextState
 import org.mozilla.fenix.compose.list.IconListItem
 import org.mozilla.fenix.compose.list.SwitchListItem
 import org.mozilla.fenix.compose.settings.SettingsSectionHeader
