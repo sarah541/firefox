@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.mozilla.fenix.compose
+package mozilla.components.compose.base
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -29,45 +29,53 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import mozilla.components.compose.base.button.FilledButton
 import mozilla.components.compose.base.button.IconButton
-import org.mozilla.fenix.theme.FirefoxTheme
+import mozilla.components.compose.base.theme.AcornTheme
+import mozilla.components.compose.base.utils.parseHtml
 import mozilla.components.ui.icons.R as iconsR
 
 /**
  * Card for presenting promotional messages.
  *
- * @param description The primary piece of text.
- * @param closeButtonContentDescription The content description for the close button.
- * @param onDismiss Callback invoked when the close button is clicked.
+ * @param description The optional description text shown in the body of the card.
  * @param modifier The [Modifier] to be applied to the card.
  * @param title The optional header text shown above the [description].
  * @param footer An optional piece of text with a clickable link.
  * @param illustration Composable slot displayed at the end of the card. Commonly used for illustrations.
  * @param contentSpacing The vertical spacing between the title, message, and actions slots.
+ * @param verticalAlignment Vertical alignment of the text content and the [illustration].
+ * Defaults to [Alignment.Bottom].
  * @param colors Defines the color styling for the card. Defaults to
  * [PromoCardColors.promoCardColors].
+ * @param closeButtonContentDescription The content description for the close button. Ignored
+ * when [onDismiss] is null.
+ * @param onDismiss Callback invoked when the close button is clicked. When null, the close
+ * button is not rendered.
  */
 @Composable
 fun PromoCard(
-    description: String,
-    closeButtonContentDescription: String?,
-    onDismiss: () -> Unit,
+    description: String?,
     modifier: Modifier = Modifier,
     title: String? = null,
     footer: Pair<String, LinkTextState>? = null,
     illustration: (@Composable () -> Unit)? = null,
-    contentSpacing: Dp = FirefoxTheme.layout.space.static50,
+    contentSpacing: Dp = AcornTheme.layout.space.static50,
+    verticalAlignment: Alignment.Vertical = Alignment.Bottom,
     colors: PromoCardColors = PromoCardColors.promoCardColors(),
+    closeButtonContentDescription: String? = null,
+    onDismiss: (() -> Unit)? = null,
 ) {
     PromoCard(
-        closeButtonContentDescription = closeButtonContentDescription,
         modifier = modifier,
         title = title?.let { titleText -> { Text(text = titleText) } },
-        message = { Text(text = remember(description) { parseHtml(description) }) },
+        message = { description?.let { Text(text = remember(description) { parseHtml(description) }) } },
         actions = footer?.let { (footerText, linkState) ->
             {
                 LinkText(
                     text = footerText,
                     linkTextStates = listOf(linkState),
+                    style = AcornTheme.typography.body2.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
                     linkTextColor = colors.actionsTextColor,
                     linkTextDecoration = TextDecoration.Underline,
                 )
@@ -75,7 +83,9 @@ fun PromoCard(
         },
         illustration = illustration,
         contentSpacing = contentSpacing,
+        verticalAlignment = verticalAlignment,
         colors = colors,
+        closeButtonContentDescription = closeButtonContentDescription,
         onDismiss = onDismiss,
     )
 }
@@ -84,27 +94,32 @@ fun PromoCard(
  * Card for presenting promotional messages with slotted content for title, message, actions and
  * illustration.
  *
- * @param closeButtonContentDescription The content description for the close button.
- * @param onDismiss Callback invoked when the close button is clicked.
  * @param modifier The [Modifier] to be applied to the card.
  * @param title Composable slot for the card's heading.
  * @param message Composable slot displayed below the title. Intended for descriptive or supporting content.
  * @param actions Composable slot below the message, intended for actions such as a link or buttons.
  * @param illustration Composable slot displayed at the end of the card.
  * @param contentSpacing The vertical spacing between the title, message, and actions slots.
+ * @param verticalAlignment Vertical alignment of the text content and the [illustration].
+ * Defaults to [Alignment.Bottom].
  * @param colors Defines the color styling for the card. Defaults to [PromoCardColors.promoCardColors].
+ * @param closeButtonContentDescription The content description for the close button. Ignored
+ * when [onDismiss] is null.
+ * @param onDismiss Callback invoked when the close button is clicked. When null, the close
+ * button is not rendered.
  */
 @Composable
 fun PromoCard(
-    closeButtonContentDescription: String?,
-    onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     title: (@Composable () -> Unit)? = null,
     message: (@Composable () -> Unit)? = null,
     actions: (@Composable () -> Unit)? = null,
     illustration: (@Composable () -> Unit)? = null,
-    contentSpacing: Dp = FirefoxTheme.layout.space.static50,
+    contentSpacing: Dp = AcornTheme.layout.space.static50,
+    verticalAlignment: Alignment.Vertical = Alignment.Bottom,
     colors: PromoCardColors = PromoCardColors.promoCardColors(),
+    closeButtonContentDescription: String? = null,
+    onDismiss: (() -> Unit)? = null,
 ) {
     InfoCardContainer(
         modifier = modifier,
@@ -116,18 +131,18 @@ fun PromoCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = FirefoxTheme.layout.space.static200),
-                horizontalArrangement = Arrangement.spacedBy(FirefoxTheme.layout.space.static200),
-                verticalAlignment = Alignment.Bottom,
+                    .padding(horizontal = AcornTheme.layout.space.static200),
+                horizontalArrangement = Arrangement.spacedBy(AcornTheme.layout.space.static200),
+                verticalAlignment = verticalAlignment,
             ) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(vertical = FirefoxTheme.layout.space.static150),
+                        .padding(vertical = AcornTheme.layout.space.static150),
                     verticalArrangement = Arrangement.spacedBy(contentSpacing),
                 ) {
                     CompositionLocalProvider(
-                        LocalTextStyle provides FirefoxTheme.typography.headline8.copy(
+                        LocalTextStyle provides AcornTheme.typography.headline8.copy(
                             color = colors.titleTextColor,
                         ),
                     ) {
@@ -135,7 +150,7 @@ fun PromoCard(
                     }
 
                     CompositionLocalProvider(
-                        LocalTextStyle provides FirefoxTheme.typography.body2.copy(
+                        LocalTextStyle provides AcornTheme.typography.body2.copy(
                             color = colors.messageTextColor,
                         ),
                     ) {
@@ -143,7 +158,7 @@ fun PromoCard(
                     }
 
                     CompositionLocalProvider(
-                        LocalTextStyle provides FirefoxTheme.typography.body2.copy(
+                        LocalTextStyle provides AcornTheme.typography.body2.copy(
                             color = colors.actionsTextColor,
                         ),
                     ) {
@@ -154,12 +169,14 @@ fun PromoCard(
                 illustration?.invoke()
             }
 
-            CloseButton(
-                modifier = Modifier.align(Alignment.TopEnd),
-                color = colors.iconColor,
-                contentDescription = closeButtonContentDescription,
-                onCloseButtonClick = onDismiss,
-            )
+            if (onDismiss != null) {
+                CloseButton(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    color = colors.iconColor,
+                    contentDescription = closeButtonContentDescription,
+                    onCloseButtonClick = onDismiss,
+                )
+            }
         }
     }
 }
@@ -227,9 +244,8 @@ data class PromoCardColors(
 @Composable
 @PreviewLightDark
 private fun PromoCardWithSlotsPreview() {
-    FirefoxTheme {
+    AcornTheme {
         PromoCard(
-            closeButtonContentDescription = null,
             title = { Text("Title") },
             message = { Text("Description") },
             actions = {
@@ -240,10 +256,11 @@ private fun PromoCardWithSlotsPreview() {
             },
             illustration = {
                 Image(
-                    painter = painterResource(iconsR.drawable.mozac_ic_fox_ai_on_state),
+                    painter = painterResource(iconsR.drawable.mozac_ic_logo_firefox_24),
                     contentDescription = null,
                 )
             },
+            closeButtonContentDescription = null,
             onDismiss = {},
         )
     }
@@ -251,10 +268,10 @@ private fun PromoCardWithSlotsPreview() {
 
 @Composable
 @PreviewLightDark
-private fun PromoCardWithoutTitlePreview() {
-    FirefoxTheme {
+private fun PromoCardWithSlotsAndNoCloseButtonPreview() {
+    AcornTheme {
         PromoCard(
-            closeButtonContentDescription = null,
+            title = { Text("Title") },
             message = { Text("Description") },
             actions = {
                 Text(
@@ -262,6 +279,29 @@ private fun PromoCardWithoutTitlePreview() {
                     textDecoration = TextDecoration.Underline,
                 )
             },
+            illustration = {
+                Image(
+                    painter = painterResource(iconsR.drawable.mozac_ic_logo_firefox_24),
+                    contentDescription = null,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
+private fun PromoCardWithoutTitlePreview() {
+    AcornTheme {
+        PromoCard(
+            message = { Text("Description") },
+            actions = {
+                Text(
+                    text = "Link",
+                    textDecoration = TextDecoration.Underline,
+                )
+            },
+            closeButtonContentDescription = null,
             onDismiss = {},
         )
     }
@@ -270,7 +310,7 @@ private fun PromoCardWithoutTitlePreview() {
 @Composable
 @PreviewLightDark
 private fun PromoCardFromStringsPreview() {
-    FirefoxTheme {
+    AcornTheme {
         PromoCard(
             description = "Description",
             closeButtonContentDescription = null,
@@ -282,7 +322,7 @@ private fun PromoCardFromStringsPreview() {
             ),
             illustration = {
                 Image(
-                    painter = painterResource(iconsR.drawable.mozac_ic_fox_ai_on_state),
+                    painter = painterResource(iconsR.drawable.mozac_ic_logo_firefox_24),
                     contentDescription = null,
                 )
             },
@@ -294,7 +334,7 @@ private fun PromoCardFromStringsPreview() {
 @Composable
 @PreviewLightDark
 private fun PromoCardWithFilledButtonActionPreview() {
-    FirefoxTheme {
+    AcornTheme {
         PromoCard(
             closeButtonContentDescription = null,
             title = { Text("Title") },
@@ -307,7 +347,7 @@ private fun PromoCardWithFilledButtonActionPreview() {
             },
             illustration = {
                 Image(
-                    painter = painterResource(iconsR.drawable.mozac_ic_fox_ai_on_state),
+                    painter = painterResource(iconsR.drawable.mozac_ic_logo_firefox_24),
                     contentDescription = null,
                 )
             },
