@@ -224,6 +224,7 @@ internal fun Homepage(
                                     onViewSchedule = interactor::onViewScheduleClicked,
                                     onFollowTeam = { showSportsCountrySelector = true },
                                     onSkip = interactor::onSkippedFollowTeam,
+                                    onGetCustomWallpaper = interactor::onGetCustomWallpaperClicked,
                                 )
                             }
 
