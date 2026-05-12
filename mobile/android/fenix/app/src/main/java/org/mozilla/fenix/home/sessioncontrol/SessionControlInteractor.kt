@@ -442,4 +442,12 @@ class SessionControlInteractor(
     override fun onCountdownWidgetDismissed() {
         sportsController.handleCountdownWidgetDismissed()
     }
+
+    override fun onPrivacyReportTapped() {
+        Homepage.privacyReportTapped.record(NoExtras())
+    }
+
+    override fun onGetCustomWallpaperClicked() {
+        sportsController.handleOnGetCustomWallpaperClicked()
+    }
 }
