@@ -236,8 +236,8 @@ internal fun Homepage(
                                     onRefresh = { source ->
                                         interactor.onRefreshClicked(source)
                                     },
-                                    onMatchClicked = { homeTeam, awayTeam ->
-                                        interactor.onMatchClicked(homeTeam, awayTeam)
+                                    onMatchClicked = { homeTeam, awayTeam, date ->
+                                        interactor.onMatchClicked(homeTeam, awayTeam, date)
                                     },
                                 )
                             }
