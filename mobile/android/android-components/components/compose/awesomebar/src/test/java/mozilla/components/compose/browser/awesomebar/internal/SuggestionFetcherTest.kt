@@ -12,10 +12,12 @@ import mozilla.components.concept.awesomebar.AwesomeBar.SuggestionProviderGroup
 import mozilla.components.support.test.any
 import mozilla.components.support.test.mock
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 class SuggestionFetcherTest {
 
@@ -62,4 +64,28 @@ class SuggestionFetcherTest {
 
             assertEquals(providerGroup.priority, Int.MAX_VALUE)
         }
+
+    @Test
+    fun `GIVEN an in progress fetch WHEN the fetcher is forgotten THEN the fetch is cancelled`() {
+        val fetcher = SuggestionFetcher(listOf(SuggestionProviderGroup(listOf(mock<SuggestionProvider>()))), null)
+        val fetchJob: Job = mock()
+        fetcher.fetchJob = fetchJob
+
+        fetcher.onForgotten()
+
+        verify(fetchJob).cancel()
+        assertNull(fetcher.fetchJob)
+    }
+
+    @Test
+    fun `GIVEN an in progress fetch WHEN the fetcher is abandoned THEN the fetch is cancelled`() {
+        val fetcher = SuggestionFetcher(listOf(SuggestionProviderGroup(listOf(mock<SuggestionProvider>()))), null)
+        val fetchJob: Job = mock()
+        fetcher.fetchJob = fetchJob
+
+        fetcher.onAbandoned()
+
+        verify(fetchJob).cancel()
+        assertNull(fetcher.fetchJob)
+    }
 }

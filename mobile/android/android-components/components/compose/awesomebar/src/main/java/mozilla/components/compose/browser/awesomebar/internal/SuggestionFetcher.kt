@@ -135,10 +135,20 @@ internal class SuggestionFetcher(
     }
 
     override fun onAbandoned() {
-        dispatcher.close()
+        stop()
     }
 
     override fun onForgotten() {
+        stop()
+    }
+
+    /**
+     * Stops any in-progress fetch. Suggestion providers may suspend indefinitely, keeping alive everything they
+     * reference, so their coroutines must be cancelled and not just left without a thread to run on.
+     */
+    private fun stop() {
+        fetchJob?.cancel()
+        fetchJob = null
         dispatcher.close()
     }
 

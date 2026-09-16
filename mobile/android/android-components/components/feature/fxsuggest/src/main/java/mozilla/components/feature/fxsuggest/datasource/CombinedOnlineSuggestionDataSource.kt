@@ -7,10 +7,11 @@ package mozilla.components.feature.fxsuggest.datasource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,7 +83,7 @@ class CombinedOnlineSuggestionDataSource(
     private val client: MerinoClient = SuggestMerinoClient(),
     private val debounceMs: Long = DEFAULT_DEBOUNCE_MS,
 ) : CombinedSuggestionsDataSource {
-    private val queryFlow = MutableSharedFlow<String>(replay = 1)
+    private val queryFlow = MutableStateFlow<String?>(null)
     private val resultsFlow = MutableStateFlow(Pair("", CombinedResults.Empty as CombinedResults))
     private val json = Json { ignoreUnknownKeys = true }
     private val stocksParser = StocksSuggestionParser()
@@ -91,7 +92,7 @@ class CombinedOnlineSuggestionDataSource(
 
     init {
         scope.launch {
-            queryFlow.debounce(debounceMs).collectLatest { query ->
+            queryFlow.filterNotNull().debounce(debounceMs).collectLatest { query ->
                 val results = fetchAndParse(query)
                 resultsFlow.value = query to results
             }
@@ -100,8 +101,19 @@ class CombinedOnlineSuggestionDataSource(
 
     private suspend fun fetch(query: String): CombinedResults {
         if (query.length < MIN_QUERY_LENGTH) return CombinedResults.Empty
-        queryFlow.emit(query)
-        return resultsFlow.first { it.first == query }.second
+        queryFlow.value = query
+
+        // Results for a query that a newer one supersedes are never published. Waiting for them alone would
+        // suspend the caller forever and, since [scope] outlives it, retain it and everything it references.
+        return combine(queryFlow, resultsFlow) { latestQuery, (resultsQuery, results) ->
+                when {
+                    resultsQuery == query -> results
+                    latestQuery != query -> CombinedResults.Empty
+                    else -> null
+                }
+            }
+            .filterNotNull()
+            .first()
     }
 
     override suspend fun fetchStocks(query: String): List<StockItem> =

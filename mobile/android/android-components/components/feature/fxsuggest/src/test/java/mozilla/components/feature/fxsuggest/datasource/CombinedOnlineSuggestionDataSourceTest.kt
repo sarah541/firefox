@@ -8,6 +8,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import mozilla.components.feature.fxsuggest.client.MerinoClient
 import org.junit.Assert.assertEquals
@@ -284,6 +285,30 @@ class CombinedOnlineSuggestionDataSourceTest {
         dataSource.fetchStocks("MSFT stock")
 
         assertEquals(listOf("MSFT stock"), client.queries)
+    }
+
+    @Test
+    fun `a query superseded within the debounce window returns empty instead of waiting for results`() = runTest {
+        val client = FakeMerinoClient(STOCKS_RESPONSE)
+        val dataSource = CombinedOnlineSuggestionDataSource(backgroundScope, client)
+
+        val supersededQuery = async { dataSource.fetchStocks("AAPL stock") }
+        advanceTimeBy(DEFAULT_DEBOUNCE_MS - 1)
+        dataSource.fetchStocks("MSFT stock")
+
+        assertTrue(supersededQuery.await().isEmpty())
+    }
+
+    @Test
+    fun `a query superseded while its results are fetched returns empty instead of waiting for them`() = runTest {
+        val client = FakeMerinoClient(STOCKS_RESPONSE)
+        val dataSource = CombinedOnlineSuggestionDataSource(backgroundScope, client, debounceMs = 0)
+
+        val supersededQuery = async { dataSource.fetchSports("lakers game") }
+        runCurrent()
+        dataSource.fetchStocks("AAPL stock")
+
+        assertTrue(supersededQuery.await().isEmpty())
     }
 }
 
